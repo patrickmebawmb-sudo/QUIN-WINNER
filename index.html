@@ -244,5 +244,25 @@ document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDe
 document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
 renderAll();changeRole();
 </script>
+ <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQuGf9ZD66NpNoQvxT7NH8YCQStw3X1bQ",
+    authDomain: "quin-winner.firebaseapp.com",
+    databaseURL: "https://quin-winner-default-rtdb.firebaseio.com",
+    projectId: "quin-winner",
+    storageBucket: "quin-winner.firebasestorage.app",
+    messagingSenderId: "36142393238",
+    appId: "1:36142393238:web:e24692bf0fbb776e3d5fb7"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
