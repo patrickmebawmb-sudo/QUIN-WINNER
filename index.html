@@ -243,13 +243,32 @@ document.getElementById('moveType').addEventListener('change',()=>{document.getE
 document.getElementById('moveForm').addEventListener('submit',e=>{e.preventDefault();let p=db.products.find(p=>p.id===document.getElementById('moveProduct').value),type=document.getElementById('moveType').value,qty=num(document.getElementById('moveQty').value);if(!p)return toast('Choisissez un article.');if(qty<=0)return toast('La quantité doit être positive.');if(type==='out'&&stock(p)<qty)return toast('Stock insuffisant.');let cost=num(document.getElementById('moveCost').value);if(type==='in'&&cost>0)p.cost=cost;db.movements.push({id:id(),pid:p.id,name:p.name,type,qty,cost,note:document.getElementById('moveNote').value.trim(),date:document.getElementById('moveDate').value||today(),created:Date.now()});e.target.reset();document.getElementById('moveDate').value=today();document.getElementById('moveQty').value=1;save();toast('Mouvement enregistré.');});
 document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();db.expenses.push({id:id(),name:document.getElementById('expenseName').value.trim(),amount:num(document.getElementById('expenseAmount').value),date:document.getElementById('expenseDate').value||today(),note:document.getElementById('expenseNote').value.trim(),created:Date.now()});e.target.reset();document.getElementById('expenseDate').value=today();save();toast('Dépense enregistrée.');});
 document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
-renderAll();changeRole();
-  // =========================================================================
+renderAll();
+        
+        // --- SÉCURITÉ DE FORCE : DÉBLOCAGE PERMANENT DÉPENSES VENDEUSE ---
+        const originalChangeRole = changeRole;
+        changeRole = function() {
+            if (typeof originalChangeRole === 'function') originalChangeRole();
+            // Force l'accès immédiat après l'exécution de la sécurité d'origine
+            const btnDepenses = document.querySelector('[data-page="expenses"]');
+            if (btnDepenses) {
+                btnDepenses.classList.remove('admin-only');
+                btnDepenses.style.setProperty('display', 'inline-block', 'important');
+            }
+            const pageDepenses = document.getElementById('expenses');
+            if (pageDepenses) {
+                pageDepenses.classList.remove('admin-only');
+                pageDepenses.style.setProperty('display', 'block', 'important');
+            }
+        };
+        changeRole();
+    });
+
 // =========================================================================
-// INJECTION COMPLÈTE CORRIGÉE : TAUX, CONVERSION DOLLARS ET FORMULAIRE DÉPENSES
+// INJECTION COMPLÈTE CORRIGÉE : INSERER FORMULAIRE ET CALCULATEUR DOLLARS
 // =========================================================================
 function injecterSystemeDollarEtDepenses() {
-    // 1. Ajouter la case du taux et le bouton d'échange vert sous le titre du Tableau de bord
+    // 1. Ajouter la case du taux et le bouton d'échange vert sous le titre
     const headerDashboard = document.querySelector('#dashboard h1') || document.getElementById('todayLabel');
     if (headerDashboard && !document.getElementById('tauxManuel')) {
         const zoneTaux = document.createElement('div');
@@ -279,15 +298,14 @@ function injecterSystemeDollarEtDepenses() {
         }
     });
 
-    // 3. Forcer l'affichage de l'onglet Dépenses dans la barre de navigation pour la vendeuse
-    const btnDepenses = document.querySelector('[data-page="expenses"]') || 
-                        Array.from(document.querySelectorAll('nav button')).find(b => b.textContent.includes('Dépenses'));
+    // 3. Ré-afficher le menu dépenses si la vendeuse change d'onglet
+    const btnDepenses = document.querySelector('[data-page="expenses"]');
     if (btnDepenses) {
         btnDepenses.classList.remove('admin-only');
         btnDepenses.style.setProperty('display', 'inline-block', 'important');
     }
 
-    // 4. Injecter les cases d'enregistrement officielles (formulaire) si l'onglet reste vide
+    // 4. Injecter de force les cases d'enregistrement (formulaire) à l'écran
     const pageDepenses = document.getElementById('expenses');
     if (pageDepenses) {
         pageDepenses.classList.remove('admin-only');
@@ -296,25 +314,23 @@ function injecterSystemeDollarEtDepenses() {
         if (!document.getElementById('secoursForm')) {
             const blocFormulaire = document.createElement('div');
             blocFormulaire.id = "secoursForm";
-            blocFormulaire.style.cssText = "background: white; padding: 20px; border-radius: 10px; border: 1px solid #c0c8c2; margin-bottom: 20px;";
+            blocFormulaire.style.cssText = "background: white; padding: 20px; border-radius: 10px; border: 1px solid #c0c8c2; margin-bottom: 20px; display: block !important;";
             blocFormulaire.innerHTML = `
-                <h2 style="font-size: 17px; margin: 0 0 14px; font-weight: 600;">Ajouter une dépense (Session active)</h2>
+                <h2 style="font-size: 17px; margin: 0 0 14px; font-weight: 600; color: black;">Ajouter une dépense (Session active)</h2>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="txtNature" placeholder="Nature de la dépense" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 150px;">
-                    <input type="number" id="txtMontant" placeholder="Montant en FC" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 120px;">
+                    <input type="text" id="txtNature" placeholder="Nature de la dépense" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 150px; color: black;">
+                    <input type="number" id="txtMontant" placeholder="Montant en FC" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 120px; color: black;">
                     <button type="button" id="btnValiderDepense" style="background: #176b45; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Enregistrer la dépense</button>
                 </div>
                 <p id="msgStatut" style="font-size: 12px; margin-top: 8px; font-weight: bold; display:none;"></p>
             `;
             pageDepenses.insertBefore(blocFormulaire, pageDepenses.firstChild);
-            
-            // Brancher l'action d'enregistrement sur vos propres structures d'origine
             document.getElementById('btnValiderDepense').addEventListener('click', sauvegarderNouvelleDepenseFirebase);
         }
     }
 }
 
-// Fonction qui envoie la dépense directement dans votre base de données existante
+// Fonction d'enregistrement sur votre base Firebase existante
 function sauvegarderNouvelleDepenseFirebase() {
     const nature = document.getElementById('txtNature').value.trim();
     const montant = parseFloat(document.getElementById('txtMontant').value) || 0;
@@ -328,7 +344,6 @@ function sauvegarderNouvelleDepenseFirebase() {
     }
     
     try {
-        // Envoi via votre outil dh.expenses.push existant à la ligne 243
         if (typeof dh !== 'undefined' && dh.expenses && typeof renderAll === 'function') {
             dh.expenses.push({
                 id: Date.now().toString(),
@@ -336,23 +351,20 @@ function sauvegarderNouvelleDepenseFirebase() {
                 amount: montant,
                 date: typeof today === 'function' ? today() : new Date().toLocaleDateString('fr-FR')
             });
-            
             statut.style.color = "#176b45";
             statut.innerText = "✅ Dépense enregistrée avec succès !";
             statut.style.display = "block";
             document.getElementById('txtNature').value = "";
             document.getElementById('txtMontant').value = "";
-            
-            // Actualisation instantanée du tableau de l'application
             renderAll();
         } else {
             statut.style.color = "#b42318";
-            statut.innerText = "⚠️ Connexion à la base de données en cours...";
+            statut.innerText = "⚠️ Erreur de connexion aux données.";
             statut.style.display = "block";
         }
     } catch (e) {
         statut.style.color = "#b42318";
-        statut.innerText = "❌ Échec d'envoi. Veuillez rafraîchir la page.";
+        statut.innerText = "❌ Échec d'envoi.";
         statut.style.display = "block";
     }
 }
@@ -370,7 +382,7 @@ function executerLaConversion() {
     });
 }
 
-// Lancement automatique toutes les secondes en arrière-plan
+// Exécution et surveillance forcée continue
 setInterval(injecterSystemeDollarEtDepenses, 1000);
 
 </script>
