@@ -63,45 +63,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <section id="dashboard" class="page active">
  <h1>Tableau de bord</h1><p class="hint" id="todayLabel"></p>
  <div class="cards">
-               <div class="card">
-          <div class="metric-label">Ventes du jour</div>
-          <div class="metric green" id="mSales">0 FC</div>
-          <div id="mSalesUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-        <div class="card admin-only">
-          <div class="metric-label">Coût des articles vendus</div>
-          <div class="metric" id="mCost">0 FC</div>
-          <div id="mCostUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-        <div class="card">
-          <div class="metric-label">Dépenses du jour</div>
-          <div class="metric" id="mExpense">0 FC</div>
-          <div id="mExpenseUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-        <div class="card admin-only">
-          <div class="metric-label">Bénéfice net du jour*</div>
-          <div class="metric green" id="mProfit">0 FC</div>
-          <div id="mProfitUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-        <div class="card admin-only">
-          <div class="metric-label">Bénéfice net du mois*</div>
-          <div class="metric green" id="mMonth">0 FC</div>
-          <div id="mMonthUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-        <div class="card">
-          <div class="metric-label">Articles référencés</div>
-          <div class="metric" id="mProducts">0</div>
-        </div>
-        <div class="card">
-          <div class="metric-label">Unités en stock</div>
-          <div class="metric" id="mUnits">0</div>
-        </div>
-        <div class="card admin-only">
-          <div class="metric-label">Valeur du stock au prix d'achat</div>
-          <div class="metric" id="mValue">0 FC</div>
-          <div id="mValueUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
-        </div>
-
+  <div class="card"><div class="metric-label">Ventes du jour</div><div class="metric green" id="mSales">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Coût des articles vendus</div><div class="metric" id="mCost">0 FC</div></div>
   <div class="card"><div class="metric-label">Dépenses du jour</div><div class="metric" id="mExpense">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Bénéfice net du jour*</div><div class="metric green" id="mProfit">0 FC</div></div>
@@ -281,54 +243,6 @@ document.getElementById('moveForm').addEventListener('submit',e=>{e.preventDefau
 document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();db.expenses.push({id:id(),name:document.getElementById('expenseName').value.trim(),amount:num(document.getElementById('expenseAmount').value),date:document.getElementById('expenseDate').value||today(),note:document.getElementById('expenseNote').value.trim(),created:Date.now()});e.target.reset();document.getElementById('expenseDate').value=today();save();toast('Dépense enregistrée.');});
 document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
 renderAll();changeRole();
- // --- SYSTÈME AUTOMATIQUE DE CONVERSION EN DOLLARS (MANUEL) ---
-function actualiserCalculMonnaie() {
-    const inputTaux = document.getElementById('tauxManuel');
-    const taux = parseFloat(inputTaux ? inputTaux.value : 2800) || 2800;
-    
-    // Correspondance des cases Francs Congolais -> Dollars
-    const kpis = [
-        { fc: 'mSales', usd: 'mSalesUSD' },
-        { fc: 'mCost', usd: 'mCostUSD' },
-        { fc: 'mExpense', usd: 'mExpenseUSD' },
-        { fc: 'mProfit', usd: 'mProfitUSD' },
-        { fc: 'mMonth', usd: 'mMonthUSD' },
-        { fc: 'mValue', usd: 'mValueUSD' }
-    ];
-    
-    kpis.forEach(item => {
-        const elFC = document.getElementById(item.fc);
-        const elUSD = document.getElementById(item.usd);
-        if (elFC && elUSD) {
-            // Nettoyage du texte pour ne garder que le chiffre (enlève "FC")
-            const montantFC = parseFloat(elFC.innerText.replace(/[^0-9.-]/g, '')) || 0;
-            // Division par votre taux et arrondi à 2 chiffres après la virgule
-            elUSD.innerText = (montantFC / taux).toFixed(2) + " $";
-        }
-    });
-}
-
-// Lancement automatique des écouteurs
-setTimeout(() => {
-    const inputTaux = document.getElementById('tauxManuel');
-    if (inputTaux) {
-        inputTaux.addEventListener('input', actualiserCalculMonnaie);
-    }
-    
-    // Relancer le calcul si Firebase modifie les chiffres en Francs Congolais
-    const ids = ['mSales', 'mCost', 'mExpense', 'mProfit', 'mMonth', 'mValue'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            const obs = new MutationObserver(actualiserCalculMonnaie);
-            obs.observe(el, { childList: true, characterData: true, subtree: true });
-        }
-    });
-    
-    // Premier calcul au démarrage
-    actualiserCalculMonnaie();
-}, 1500);
-
 </script>
 </body>
 </html>
