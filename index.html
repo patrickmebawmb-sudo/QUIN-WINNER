@@ -55,10 +55,9 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <header>
  <div class="head"><div><div class="brand">📦 QUIN WINNER</div><div class="sub">Gestion de stock • Ventes • Dépenses</div></div>
  <div style="display:flex;align-items:center;gap:10px"><span id="activeRole" style="color:#fff;font-weight:700">Responsable</span><button type="button" class="btn secondary small no-print" onclick="logout()">Verrouiller</button><select id="role" aria-label="Mode d’accès" onchange="changeRole()" style="display:none"><option value="admin">Responsable</option><option value="seller">Vendeuse</option></select></div></div>
- <nav id="nav">
-  <button class="active" data-page="dashboard">Tableau de bord</button><button data-page="products">Articles / stock</button> <button data-page="sales">Nouvelle vente</button><button data-page="expenses">Dépenses</button>
-<button data-page="sale">Nouvelle vente</button><button class="admin-only" data-page="movement">Entrées / sorties</button><button class="admin-only" data-page="expense">Dépenses</button><button data-page="history">Historique / rapports</button>
- </nav>
+         <nav id="nav"><button class="active" data-page="dashboard">Tableau de bord</button><button data-page="products">Articles / stock</button></nav>
+
+  </nav>
 </header>
 <main>
 <section id="dashboard" class="page active">
