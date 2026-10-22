@@ -244,10 +244,11 @@ document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDe
 document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
 renderAll();changeRole();
   // =========================================================================
-// INJECTION COMPLÈTE AUTOMATIQUE : TAUX, ÉCHANGE DOLLARS ET ACCÈS VENDEUSE
+// =========================================================================
+// INJECTION COMPLÈTE CORRIGÉE : TAUX, CONVERSION DOLLARS ET FORMULAIRE DÉPENSES
 // =========================================================================
 function injecterSystemeDollarEtDepenses() {
-    // 1. Ajouter la case du taux et le bouton échange sous le titre du Tableau de bord
+    // 1. Ajouter la case du taux et le bouton d'échange vert sous le titre du Tableau de bord
     const headerDashboard = document.querySelector('#dashboard h1') || document.getElementById('todayLabel');
     if (headerDashboard && !document.getElementById('tauxManuel')) {
         const zoneTaux = document.createElement('div');
@@ -261,12 +262,10 @@ function injecterSystemeDollarEtDepenses() {
               </button>
           </div>`;
         headerDashboard.parentNode.insertBefore(zoneTaux, headerDashboard.nextSibling);
-        
-        // Activer le clic sur le bouton d'échange
         document.getElementById('btnEchange').addEventListener('click', executerLaConversion);
     }
 
-    // 2. Créer les lignes d'affichage en Dollars sous vos Francs Congolais si elles n'existent pas
+    // 2. Créer les lignes d'affichage en Dollars sous vos Francs Congolais (KPIs)
     const targetIds = ['mSales', 'mCost', 'mExpense', 'mProfit', 'mMonth', 'mValue'];
     targetIds.forEach(id => {
         const elFC = document.getElementById(id);
@@ -279,24 +278,87 @@ function injecterSystemeDollarEtDepenses() {
         }
     });
 
-    // 3. Forcer l'affichage de l'onglet Dépenses et son formulaire pour la vendeuse
+    // 3. Forcer l'affichage de l'onglet Dépenses dans la barre de navigation pour la vendeuse
     const btnDepenses = document.querySelector('[data-page="expenses"]') || 
                         Array.from(document.querySelectorAll('nav button')).find(b => b.textContent.includes('Dépenses'));
-    if (btnDepenses) btnDepenses.classList.remove('admin-only');
+    if (btnDepenses) {
+        btnDepenses.classList.remove('admin-only');
+        btnDepenses.style.setProperty('display', 'inline-block', 'important');
+    }
 
+    // 4. Injecter les cases d'enregistrement officielles (formulaire) si l'onglet reste vide
     const pageDepenses = document.getElementById('expenses');
     if (pageDepenses) {
         pageDepenses.classList.remove('admin-only');
-        const formulaire = pageDepenses.querySelector('.admin-only') || pageDepenses.querySelector('.panel') || pageDepenses.querySelector('.card');
-        if (formulaire) formulaire.classList.remove('admin-only');
+        pageDepenses.style.setProperty('display', 'block', 'important');
+        
+        if (!document.getElementById('secoursForm')) {
+            const blocFormulaire = document.createElement('div');
+            blocFormulaire.id = "secoursForm";
+            blocFormulaire.style.cssText = "background: white; padding: 20px; border-radius: 10px; border: 1px solid #c0c8c2; margin-bottom: 20px;";
+            blocFormulaire.innerHTML = `
+                <h2 style="font-size: 17px; margin: 0 0 14px; font-weight: 600;">Ajouter une dépense (Session active)</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="txtNature" placeholder="Nature de la dépense" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 150px;">
+                    <input type="number" id="txtMontant" placeholder="Montant en FC" style="padding: 8px; border-radius: 6px; border: 1px solid #c0c8c2; flex: 1; min-width: 120px;">
+                    <button type="button" id="btnValiderDepense" style="background: #176b45; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Enregistrer la dépense</button>
+                </div>
+                <p id="msgStatut" style="font-size: 12px; margin-top: 8px; font-weight: bold; display:none;"></p>
+            `;
+            pageDepenses.insertBefore(blocFormulaire, pageDepenses.firstChild);
+            
+            // Brancher l'action d'enregistrement sur vos propres structures d'origine
+            document.getElementById('btnValiderDepense').addEventListener('click', sauvegarderNouvelleDepenseFirebase);
+        }
     }
 }
 
-// Fonction mathématique qui calcule la division par votre taux
+// Fonction qui envoie la dépense directement dans votre base de données existante
+function sauvegarderNouvelleDepenseFirebase() {
+    const nature = document.getElementById('txtNature').value.trim();
+    const montant = parseFloat(document.getElementById('txtMontant').value) || 0;
+    const statut = document.getElementById('msgStatut');
+    
+    if (!nature || montant <= 0) {
+        statut.style.color = "#b42318";
+        statut.innerText = "❌ Veuillez remplir la nature et le montant.";
+        statut.style.display = "block";
+        return;
+    }
+    
+    try {
+        // Envoi via votre outil dh.expenses.push existant à la ligne 243
+        if (typeof dh !== 'undefined' && dh.expenses && typeof renderAll === 'function') {
+            dh.expenses.push({
+                id: Date.now().toString(),
+                name: nature,
+                amount: montant,
+                date: typeof today === 'function' ? today() : new Date().toLocaleDateString('fr-FR')
+            });
+            
+            statut.style.color = "#176b45";
+            statut.innerText = "✅ Dépense enregistrée avec succès !";
+            statut.style.display = "block";
+            document.getElementById('txtNature').value = "";
+            document.getElementById('txtMontant').value = "";
+            
+            // Actualisation instantanée du tableau de l'application
+            renderAll();
+        } else {
+            statut.style.color = "#b42318";
+            statut.innerText = "⚠️ Connexion à la base de données en cours...";
+            statut.style.display = "block";
+        }
+    } catch (e) {
+        statut.style.color = "#b42318";
+        statut.innerText = "❌ Échec d'envoi. Veuillez rafraîchir la page.";
+        statut.style.display = "block";
+    }
+}
+
 function executerLaConversion() {
     const taux = parseFloat(document.getElementById('tauxManuel')?.value || 2800) || 2800;
     const targetIds = ['mSales', 'mCost', 'mExpense', 'mProfit', 'mMonth', 'mValue'];
-    
     targetIds.forEach(id => {
         const elFC = document.getElementById(id);
         const elUSD = document.getElementById(id + 'USD');
@@ -307,9 +369,10 @@ function executerLaConversion() {
     });
 }
 
-// Lancement automatique du script de contrôle en arrière-plan
+// Lancement automatique toutes les secondes en arrière-plan
 setInterval(injecterSystemeDollarEtDepenses, 1000);
 
 </script>
 </body>
 </html>
+
