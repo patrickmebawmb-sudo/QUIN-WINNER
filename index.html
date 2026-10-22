@@ -63,6 +63,18 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <section id="dashboard" class="page active">
  <h1>Tableau de bord</h1><p class="hint" id="todayLabel"></p>
  <div class="cards">
+  <!-- Zone d'échange et taux du jour manuelle -->
+<div style="background: #115e59; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: inline-block;">
+    <label for="tauxManuel" style="font-weight: bold; margin-right: 10px;">Taux du jour (1 USD = ? FC) :</label>
+    <input type="number" id="tauxManuel" value="2800" style="padding: 6px; border-radius: 4px; border: none; color: black; font-weight: bold; width: 100px;">
+    <span style="font-weight: bold; margin-right: 15px;">FC</span>
+    
+    <!-- Bouton Échange pour appliquer la conversion manuelle -->
+    <button type="button" id="btnEchange" style="background: #22c55e; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
+        🔄 Calculer la conversion
+    </button>
+</div>
+
   <div class="card"><div class="metric-label">Ventes du jour</div><div class="metric green" id="mSales">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Coût des articles vendus</div><div class="metric" id="mCost">0 FC</div></div>
   <div class="card"><div class="metric-label">Dépenses du jour</div><div class="metric" id="mExpense">0 FC</div></div>
@@ -269,6 +281,7 @@ setInterval(() => {
     }
 }, 1000);
 
+ 
 // --- FONCTION DE CONVERSION AUTOMATIQUE FC VERS DOLLARS ---
 function executerCalculMonnaie() {
     const inputTaux = document.getElementById('tauxManuel');
@@ -310,6 +323,47 @@ setTimeout(() => {
 
 
 
+// --- MOTEUR DU BOUTON ÉCHANGE (CONVERSION MANUELLE FC -> USD) ---
+function lancerEchangeMonnaie() {
+    const inputTaux = document.getElementById('tauxManuel');
+    const taux = parseFloat(inputTaux ? inputTaux.value : 2800) || 2800;
+    
+    // Liste des indicateurs à convertir
+    const kpis = [
+        { fc: 'mSales', usd: 'mSalesUSD' },
+        { fc: 'mCost', usd: 'mCostUSD' },
+        { fc: 'mExpense', usd: 'mExpenseUSD' },
+        { fc: 'mProfit', usd: 'mProfitUSD' },
+        { fc: 'mMonth', usd: 'mMonthUSD' },
+        { fc: 'mValue', usd: 'mValueUSD' }
+    ];
+    
+    kpis.forEach(item => {
+        const elFC = document.getElementById(item.fc);
+        const elUSD = document.getElementById(item.usd);
+        
+        if (elFC && elUSD) {
+            // Extrait les chiffres (ex: "138 000 FC" devient 138000)
+            const texteFC = elFC.innerText.replace(/[^0-9.-]/g, '');
+            const montantFC = parseFloat(texteFC) || 0;
+            
+            // Calcul du montant équivalent en Dollars
+            const montantUSD = (montantFC / taux).toFixed(2);
+            elUSD.innerText = montantUSD + " $";
+        }
+    });
+}
+
+// Lier le bouton Échange à la fonction de calcul
+setTimeout(() => {
+    const btnEchange = document.getElementById('btnEchange');
+    if (btnEchange) {
+        btnEchange.addEventListener('click', lancerEchangeMonnaie);
+    }
+    
+    // Lancer automatiquement une première fois au chargement
+    lancerEchangeMonnaie();
+}, 1500);
 
 </script>
 </body>
