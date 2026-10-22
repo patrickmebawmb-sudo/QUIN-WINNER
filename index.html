@@ -149,10 +149,18 @@ function blank(){return {products:[],sales:[],movements:[],expenses:[]}}
 function load(){try{return {...blank(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return blank()}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
 function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
-function changeRole(){const seller=document.getElementById('role').value==='seller';document.querySelectorAll('.admin-only').forEach(e=>e.style.display=seller?'none':'');document.getElementById('mCost').closest('.card').style.display=seller?'none':'';document.getElementById('mProfit').closest('.card').style.display=seller?'none':'';document.getElementById('mMonth').closest('.card').style.display=seller?'none':'';document.getElementById('mValue').closest('.card').style.display=seller?'none':'';renderAll()}
-function logout(){document.getElementById('loginOverlay').style.display='flex';document.getElementById('loginPassword').value='';document.getElementById('loginError').textContent='';document.getElementById('loginRole').value='admin';document.getElementById('loginPassword').focus()}
-document.getElementById('loginForm').addEventListener('submit',function(e){e.preventDefault();const role=document.getElementById('loginRole').value;const password=document.getElementById('loginPassword').value;const expected=role==='admin'?'QUINWINNER':'MARLEINE';if(password!==expected){document.getElementById('loginError').textContent='Mot de passe incorrect. Réessayez.';document.getElementById('loginPassword').select();return}document.getElementById('role').value=role;document.getElementById('activeRole').textContent=role==='admin'?'Responsable':'Vendeuse';document.getElementById('loginOverlay').style.display='none';document.getElementById('loginError').textContent='';document.getElementById('loginPassword').value='';changeRole();if(role==='seller'){const first=document.querySelector('nav button[data-page="sale"]');if(first)first.click()}else{const first=document.querySelector('nav button[data-page="dashboard"]');if(first)first.click()}});
-function stock(p){return num(p.qty)+db.movements.filter(m=>m.pid===p.id&&m.type==='in').reduce((a,m)=>a+num(m.qty),0)-db.movements.filter(m=>m.pid===p.id&&m.type==='out').reduce((a,m)=>a+num(m.qty),0)-db.sales.filter(s=>s.pid===p.id).reduce((a,s)=>a+num(s.qty),0)}
+function changeRole(){const seller=document.getElementById('role').value==='seller';document.querySelectorAll('.admin-only').forEach(e=>e.style.    const role = document.getElementById('loginRole').value;
+    const password = document.getElementById('loginPassword').value;
+    const expected = role === 'admin' ? 'QUINWINNER' : 'MARLEINE';
+    
+    if (password === expected) {
+        localStorage.setItem('userRole', role);
+        document.getElementById('loginOverlay').style.display = 'none';
+        changeRole();
+    } else {
+        document.getElementById('loginError').textContent = 'Mot de passe incorrect';
+    }
+
 function inRange(d,a,b){return (!a||d>=a)&&(!b||d<=b)}
 function sum(arr,fn){return arr.reduce((a,x)=>a+fn(x),0)}
 function dailySales(d){return db.sales.filter(s=>s.date===d)}
