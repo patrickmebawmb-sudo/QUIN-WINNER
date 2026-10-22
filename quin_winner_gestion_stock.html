@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b45">
+<title>QUIN WINNER — Gestion de stock</title>
+<style>
+:root{--green:#176b45;--green2:#21875a;--bg:#f3f6f4;--card:#fff;--text:#17221c;--muted:#68766d;--line:#e0e8e2;--red:#b42318;--amber:#9a6700}
+*{box-sizing:border-box}body{margin:0;font:15px system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(120deg,var(--green),#10452e);color:#fff;padding:18px 16px 16px;position:sticky;top:0;z-index:5;box-shadow:0 2px 10px #0001}
+.head{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:21px;font-weight:800;letter-spacing:.3px}.sub{font-size:12px;opacity:.85}.head select{max-width:155px}
+nav{display:flex;gap:7px;overflow:auto;max-width:1200px;margin:14px auto 0;padding-bottom:2px}
+nav button{white-space:nowrap;background:#ffffff1c;color:#fff;border:1px solid #ffffff38;border-radius:9px;padding:9px 12px;font-weight:650}
+nav button.active{background:#fff;color:var(--green)}
+main{max-width:1200px;margin:20px auto;padding:0 14px 40px}.page{display:none}.page.active{display:block}
+h1{font-size:23px;margin:0 0 5px}h2{font-size:17px;margin:0 0 14px}p.hint{color:var(--muted);margin:0 0 18px;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.card,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 6px #13271a05}
+.metric-label{font-size:12px;color:var(--muted)}.metric{font-size:23px;font-weight:800;margin-top:6px;overflow-wrap:anywhere}.green{color:var(--green2)}.red{color:var(--red)}
+.layout{display:grid;grid-template-columns: minmax(0,1fr) minmax(0,1fr);gap:14px}.panel{margin-bottom:14px}
+form .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+label{font-size:12px;font-weight:700;color:#46554b;display:block;margin-bottom:5px}
+input,select,textarea{width:100%;padding:11px 10px;border:1px solid #cfd9d1;border-radius:9px;background:#fff;color:var(--text);font:inherit;min-width:0}
+input:focus,select:focus{outline:2px solid #91c7a8;border-color:var(--green)}
+button{cursor:pointer;font:inherit}.btn{border:0;background:var(--green);color:#fff;border-radius:9px;padding:10px 14px;font-weight:700}.btn:hover{background:var(--green2)}.btn.secondary{background:#eaf3ed;color:var(--green)}.btn.danger{background:#fff0ef;color:var(--red)}.btn.small{padding:6px 9px;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}th,td{text-align:left;padding:10px 9px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;background:#f8faf8}td.num,th.num{text-align:right}.pill{font-size:11px;font-weight:700;padding:4px 7px;border-radius:20px;background:#e9f6ed;color:var(--green);white-space:nowrap}.pill.low{background:#fff2d8;color:var(--amber)}.pill.out{background:#ffe9e7;color:var(--red)}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}.notice{padding:12px;border-radius:10px;background:#fff7df;color:#705000;font-size:13px;margin-bottom:14px}.smalltext{font-size:12px;color:var(--muted)}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar input{max-width:320px}.toolbar select{max-width:190px}.right{margin-left:auto}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#183b29;color:#fff;padding:11px 16px;border-radius:10px;box-shadow:0 5px 20px #0002;z-index:10;display:none;max-width:90vw}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.metric{font-size:20px}.brand{font-size:18px}header{padding:14px 12px 10px}nav{margin-top:10px}}
+@media(max-width:420px){form .fields{grid-template-columns:1fr}.cards{gap:8px}.card{padding:12px}.metric{font-size:18px}}
+@media print{header,nav,.no-print,button,form,#loginOverlay{display:none!important}body{background:white}main{margin:0;max-width:none;padding:0}.page{display:none!important}.page.active{display:block!important}.panel,.card{box-shadow:none;break-inside:avoid}}
+
+#loginOverlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(145deg,#103e2a,#21875a);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;color:var(--text);width:min(420px,100%);padding:26px;border-radius:18px;box-shadow:0 18px 60px #0003}
+.login-card h1{font-size:25px;margin:0 0 6px}.login-card p{color:var(--muted);margin:0 0 20px}.login-card label{display:block;font-weight:700;margin:12px 0 6px}.login-card input,.login-card select{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;font:inherit}.login-error{color:var(--red);font-size:13px;min-height:20px;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+ <form class="login-card" id="loginForm">
+  <div style="font-size:34px;margin-bottom:8px">📦</div>
+  <h1 id="loginTitle">QUIN WINNER</h1>
+  <p>Connectez-vous pour accéder à la gestion de stock.</p>
+  <label for="loginRole">Mode d’accès</label>
+  <select id="loginRole"><option value="admin">Responsable</option><option value="seller">Vendeuse</option></select>
+  <label for="loginPassword">Mot de passe</label>
+  <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Saisir le mot de passe" required>
+  <div class="login-error" id="loginError" aria-live="polite"></div>
+  <button class="btn" type="submit" style="width:100%">Se connecter</button>
+  <p style="font-size:12px;margin:14px 0 0">Protection locale temporaire : utilisez cette version sur un appareil de confiance.</p>
+ </form>
+</div>
+<header>
+ <div class="head"><div><div class="brand">📦 QUIN WINNER</div><div class="sub">Gestion de stock • Ventes • Dépenses</div></div>
+ <div style="display:flex;align-items:center;gap:10px"><span id="activeRole" style="color:#fff;font-weight:700">Responsable</span><button type="button" class="btn secondary small no-print" onclick="logout()">Verrouiller</button><select id="role" aria-label="Mode d’accès" onchange="changeRole()" style="display:none"><option value="admin">Responsable</option><option value="seller">Vendeuse</option></select></div></div>
+ <nav id="nav">
+  <button class="active" data-page="dashboard">Tableau de bord</button><button data-page="products">Articles / stock</button><button data-page="sale">Nouvelle vente</button><button class="admin-only" data-page="movement">Entrées / sorties</button><button class="admin-only" data-page="expense">Dépenses</button><button data-page="history">Historique / rapports</button>
+ </nav>
+</header>
+<main>
+<section id="dashboard" class="page active">
+ <h1>Tableau de bord</h1><p class="hint" id="todayLabel"></p>
+ <div class="cards">
+  <div class="card"><div class="metric-label">Ventes du jour</div><div class="metric green" id="mSales">0 FC</div></div>
+  <div class="card admin-only"><div class="metric-label">Coût des articles vendus</div><div class="metric" id="mCost">0 FC</div></div>
+  <div class="card"><div class="metric-label">Dépenses du jour</div><div class="metric" id="mExpense">0 FC</div></div>
+  <div class="card admin-only"><div class="metric-label">Bénéfice net du jour*</div><div class="metric green" id="mProfit">0 FC</div></div>
+  <div class="card admin-only"><div class="metric-label">Bénéfice net du mois*</div><div class="metric green" id="mMonth">0 FC</div></div>
+  <div class="card"><div class="metric-label">Articles référencés</div><div class="metric" id="mProducts">0</div></div>
+  <div class="card"><div class="metric-label">Unités en stock</div><div class="metric" id="mUnits">0</div></div>
+  <div class="card admin-only"><div class="metric-label">Valeur du stock au prix d'achat</div><div class="metric" id="mValue">0 FC</div></div>
+ </div>
+ <div class="notice">* Estimation de gestion : bénéfice = ventes − coût d'achat des articles vendus − dépenses enregistrées. Les achats de stock sont suivis séparément pour éviter de les compter deux fois.</div>
+ <div class="panel admin-only" id="importPanel">
+  <h2>📥 Importer une fiche d’articles</h2>
+  <p class="hint">Importez votre fichier Excel, CSV ou Word. L’application lira les noms, quantités et prix disponibles, puis attribuera un numéro automatique aux articles sans référence.</p>
+  <div class="fields">
+   <div><label for="articleFile">Choisir la fiche d’articles</label><input id="articleFile" type="file" accept=".xlsx,.xls,.csv,.docx,.txt"></div>
+   <div><label for="importMode">Que faire des articles déjà présents ?</label><select id="importMode"><option value="skip">Ignorer les doublons (recommandé)</option><option value="update">Mettre à jour les articles existants</option></select></div>
+  </div>
+  <div class="actions"><button class="btn" type="button" onclick="previewArticleImport()">Lire et vérifier le fichier</button><button class="btn secondary" type="button" onclick="downloadTemplate()">Télécharger une fiche modèle Excel/CSV</button></div>
+  <div id="importPreview" style="margin-top:12px"></div>
+  <p class="smalltext">Conseil : la première ligne doit contenir les titres des colonnes, par exemple : Article, Quantité, Prix d’achat, Prix de vente, Catégorie. Pour Word, utilisez de préférence un tableau dans un fichier .docx. Les fichiers .doc anciens ne sont pas pris en charge.</p>
+ </div>
+ <div class="layout"><div class="panel"><h2>Stock faible</h2><div id="lowStock"></div></div><div class="panel"><h2>Dernières opérations</h2><div id="recent"></div></div></div>
+</section>
+<section id="products" class="page">
+ <h1>Répertoire des articles</h1><p class="hint">Ajoutez vos produits et consultez les quantités disponibles.</p>
+ <div class="panel admin-only"><h2>Ajouter un article</h2>
+ <form id="productForm"><div class="fields">
+  <div><label>Nom de l'article *</label><input name="name" required placeholder="Ex. Huile 1 litre"></div>
+  <div><label>Référence / code</label><input name="sku" placeholder="Ex. ART-001"></div>
+  <div><label>Catégorie</label><input name="category" placeholder="Ex. Alimentaire"></div>
+  <div><label>Stock initial (unités) *</label><input name="qty" type="number" min="0" step="any" required value="0"></div>
+  <div><label>Prix d'achat unitaire (FC) *</label><input name="cost" type="number" min="0" step="any" required value="0"></div>
+  <div><label>Prix de vente unitaire (FC) *</label><input name="price" type="number" min="0" step="any" required value="0"></div>
+  <div><label>Seuil d'alerte (unités)</label><input name="alert" type="number" min="0" step="any" value="5"></div>
+ </div><div class="actions"><button class="btn" type="submit">Enregistrer l'article</button></div></form></div>
+ <div class="panel"><div class="toolbar"><input id="productSearch" placeholder="Rechercher un article…" oninput="renderProducts()"><select id="stockFilter" onchange="renderProducts()"><option value="all">Tous les stocks</option><option value="low">Stock faible</option><option value="out">Rupture de stock</option></select><button class="btn secondary right no-print" onclick="exportCSV('products')">Exporter CSV</button></div><div id="productsTable" class="table-wrap"></div></div>
+</section>
+<section id="sale" class="page">
+ <h1>Enregistrer une vente</h1><p class="hint">Le stock diminue automatiquement après validation de la vente.</p>
+ <div class="layout"><div class="panel"><h2>Détails de la vente</h2><form id="saleForm">
+  <div class="fields"><div style="grid-column:1/-1"><label>Article *</label><select id="saleProduct" required></select></div><div><label>Quantité *</label><input id="saleQty" type="number" min="0.01" step="any" value="1" required></div><div><label>Prix unitaire de vente (FC) *</label><input id="salePrice" type="number" min="0" step="any" required></div><div><label>Date de vente</label><input id="saleDate" type="date" required></div><div><label>Client (facultatif)</label><input id="saleClient" placeholder="Nom du client"></div></div>
+  <div class="actions"><button class="btn" type="submit">Valider la vente</button></div></form></div>
+  <div class="panel"><h2>Résumé</h2><p>Montant total</p><div class="metric green" id="salePreview">0 FC</div><p class="smalltext">Le montant est calculé selon la quantité et le prix unitaire. Le coût d'achat reste réservé au responsable.</p></div></div>
+</section>
+<section id="movement" class="page">
+ <h1>Entrées et sorties de stock</h1><p class="hint">Utilisez une entrée pour les réapprovisionnements et une sortie pour les pertes, casses ou ajustements.</p>
+ <div class="panel admin-only"><h2>Nouvelle opération de stock</h2><form id="moveForm"><div class="fields">
+  <div><label>Type d'opération</label><select id="moveType"><option value="in">Entrée / réapprovisionnement</option><option value="out">Sortie hors vente</option></select></div>
+  <div><label>Article *</label><select id="moveProduct" required></select></div>
+  <div><label>Quantité *</label><input id="moveQty" type="number" min="0.01" step="any" required value="1"></div>
+  <div><label id="moveCostLabel">Prix d'achat unitaire (FC)</label><input id="moveCost" type="number" min="0" step="any" value="0"></div>
+  <div style="grid-column:1/-1"><label>Motif / fournisseur</label><input id="moveNote" placeholder="Ex. Achat chez le fournisseur / article endommagé"></div>
+  <div><label>Date</label><input id="moveDate" type="date" required></div>
+ </div><div class="actions"><button class="btn" type="submit">Enregistrer l'opération</button></div></form></div>
+ <div class="panel"><h2>Derniers mouvements</h2><div id="movementTable" class="table-wrap"></div></div>
+</section>
+<section id="expense" class="page">
+ <h1>Dépenses</h1><p class="hint">Saisissez les dépenses de fonctionnement : transport, loyer, électricité, etc.</p>
+ <div class="panel admin-only"><h2>Ajouter une dépense</h2><form id="expenseForm"><div class="fields">
+ <div><label>Nature de la dépense *</label><input id="expenseName" required placeholder="Ex. Transport"></div><div><label>Montant (FC) *</label><input id="expenseAmount" type="number" min="0.01" step="any" required></div><div><label>Date *</label><input id="expenseDate" type="date" required></div><div><label>Note (facultatif)</label><input id="expenseNote" placeholder="Précision"></div>
+ </div><div class="actions"><button class="btn" type="submit">Enregistrer la dépense</button></div></form></div>
+ <div class="panel"><div class="toolbar"><h2 style="margin:0">Liste des dépenses</h2><button class="btn secondary right no-print" onclick="exportCSV('expenses')">Exporter CSV</button></div><div id="expenseTable" class="table-wrap"></div></div>
+</section>
+<section id="history" class="page">
+ <h1>Historique et rapports</h1><p class="hint">Filtrez les opérations par période, imprimez les rapports ou exportez les données.</p>
+ <div class="panel"><div class="toolbar"><div><label>Du</label><input id="fromDate" type="date"></div><div><label>Au</label><input id="toDate" type="date"></div><button class="btn" onclick="renderHistory()">Filtrer</button><button class="btn secondary" onclick="window.print()">Imprimer</button><button class="btn secondary admin-only" onclick="exportAll()">Sauvegarde complète (JSON)</button></div><div id="reportSummary" class="cards"></div><div id="historyTable" class="table-wrap"></div></div>
+ <div class="panel admin-only"><h2>Restaurer une sauvegarde</h2><p class="smalltext">Choisissez un fichier JSON précédemment exporté. La restauration remplace les données présentes sur cet appareil.</p><input type="file" id="restoreFile" accept=".json,application/json"><div class="actions"><button class="btn danger" onclick="restoreAll()">Restaurer les données</button><button class="btn secondary" onclick="resetDemo()">Effacer toutes les données</button></div></div>
+ <div class="notice">Important : cette première version conserve les données dans le navigateur de cet appareil. Exportez régulièrement une sauvegarde. La synchronisation automatique entre plusieurs téléphones et un ordinateur nécessite une base de données en ligne à configurer.</div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script>
+const KEY='quinwinner_stock_v1';
+const today=()=>new Date().toLocaleDateString('en-CA');
+const money=n=>new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2}).format(Number(n)||0)+' FC';
+const num=n=>Number(n)||0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+let db=load();
+function blank(){return {products:[],sales:[],movements:[],expenses:[]}}
+function load(){try{return {...blank(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return blank()}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
+function changeRole(){const seller=document.getElementById('role').value==='seller';document.querySelectorAll('.admin-only').forEach(e=>e.style.display=seller?'none':'');document.getElementById('mCost').closest('.card').style.display=seller?'none':'';document.getElementById('mProfit').closest('.card').style.display=seller?'none':'';document.getElementById('mMonth').closest('.card').style.display=seller?'none':'';document.getElementById('mValue').closest('.card').style.display=seller?'none':'';renderAll()}
+function logout(){document.getElementById('loginOverlay').style.display='flex';document.getElementById('loginPassword').value='';document.getElementById('loginError').textContent='';document.getElementById('loginRole').value='admin';document.getElementById('loginPassword').focus()}
+document.getElementById('loginForm').addEventListener('submit',function(e){e.preventDefault();const role=document.getElementById('loginRole').value;const password=document.getElementById('loginPassword').value;const expected=role==='admin'?'QUINWINNER':'MARLEINE';if(password!==expected){document.getElementById('loginError').textContent='Mot de passe incorrect. Réessayez.';document.getElementById('loginPassword').select();return}document.getElementById('role').value=role;document.getElementById('activeRole').textContent=role==='admin'?'Responsable':'Vendeuse';document.getElementById('loginOverlay').style.display='none';document.getElementById('loginError').textContent='';document.getElementById('loginPassword').value='';changeRole();if(role==='seller'){const first=document.querySelector('nav button[data-page="sale"]');if(first)first.click()}else{const first=document.querySelector('nav button[data-page="dashboard"]');if(first)first.click()}});
+function stock(p){return num(p.qty)+db.movements.filter(m=>m.pid===p.id&&m.type==='in').reduce((a,m)=>a+num(m.qty),0)-db.movements.filter(m=>m.pid===p.id&&m.type==='out').reduce((a,m)=>a+num(m.qty),0)-db.sales.filter(s=>s.pid===p.id).reduce((a,s)=>a+num(s.qty),0)}
+function inRange(d,a,b){return (!a||d>=a)&&(!b||d<=b)}
+function sum(arr,fn){return arr.reduce((a,x)=>a+fn(x),0)}
+function dailySales(d){return db.sales.filter(s=>s.date===d)}
+function dailyExpenses(d){return db.expenses.filter(e=>e.date===d)}
+function costSales(arr){return sum(arr,s=>num(s.cost)*num(s.qty))}
+function profitSales(arr){return sum(arr,s=>(num(s.price)-num(s.cost))*num(s.qty))}
+function allOps(){return [...db.sales.map(x=>({...x,kind:'Vente',label:x.name,amount:num(x.price)*num(x.qty)})),...db.movements.map(x=>({...x,kind:x.type==='in'?'Entrée stock':'Sortie stock',label:x.name,amount:x.type==='in'?num(x.cost)*num(x.qty):0})),...db.expenses.map(x=>({...x,kind:'Dépense',label:x.name,amount:num(x.amount)}))].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created||0)-(a.created||0))}
+function tableEmpty(msg){return `<div class="empty">${msg}</div>`}
+function renderDashboard(){
+ const d=today(), month=d.slice(0,7), ss=dailySales(d), es=dailyExpenses(d), ms=db.sales.filter(s=>s.date.startsWith(month)), me=db.expenses.filter(e=>e.date.startsWith(month));
+ document.getElementById('todayLabel').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+ document.getElementById('mSales').textContent=money(sum(ss,s=>s.price*s.qty));document.getElementById('mCost').textContent=money(costSales(ss));document.getElementById('mExpense').textContent=money(sum(es,e=>e.amount));document.getElementById('mProfit').textContent=money(profitSales(ss)-sum(es,e=>e.amount));document.getElementById('mMonth').textContent=money(profitSales(ms)-sum(me,e=>e.amount));document.getElementById('mProducts').textContent=db.products.length;document.getElementById('mUnits').textContent=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2}).format(sum(db.products,p=>Math.max(0,stock(p))));document.getElementById('mValue').textContent=money(sum(db.products,p=>Math.max(0,stock(p))*num(p.cost)));
+ const lows=db.products.filter(p=>stock(p)<=num(p.alert));document.getElementById('lowStock').innerHTML=lows.length?`<div class="table-wrap"><table><thead><tr><th>Article</th><th>Stock</th><th>Seuil</th></tr></thead><tbody>${lows.map(p=>`<tr><td>${esc(p.name)}</td><td><span class="pill ${stock(p)<=0?'out':'low'}">${stock(p)}</span></td><td>${num(p.alert)}</td></tr>`).join('')}</tbody></table></div>`:tableEmpty('Aucun article en stock faible.');
+ const recent=allOps().slice(0,6);document.getElementById('recent').innerHTML=recent.length?`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Opération</th><th>Montant</th></tr></thead><tbody>${recent.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.kind)} — ${esc(x.label)}</td><td>${money(x.amount)}</td></tr>`).join('')}</tbody></table></div>`:tableEmpty('Aucune opération enregistrée.');
+}
+function renderProducts(){
+ const q=(document.getElementById('productSearch')?.value||'').toLowerCase(), f=document.getElementById('stockFilter')?.value||'all';
+ let ps=db.products.filter(p=>(p.name+' '+p.sku+' '+p.category).toLowerCase().includes(q)).filter(p=>f==='low'?stock(p)<=num(p.alert):f==='out'?stock(p)<=0:true);
+ const seller=document.getElementById('role').value==='seller';
+ document.getElementById('productsTable').innerHTML=ps.length?`<table><thead><tr><th>Article</th><th>Référence</th><th>Stock</th>${seller?'':'<th>Prix achat</th>'}<th>Prix vente</th><th>État</th>${seller?'':'<th>Actions</th>'}</tr></thead><tbody>${ps.map(p=>`<tr><td><b>${esc(p.name)}</b><div class="smalltext">${esc(p.category||'')}</div></td><td>${esc(p.sku||'—')}</td><td>${stock(p)}</td>${seller?'':`<td>${money(p.cost)}</td>`}<td>${money(p.price)}</td><td><span class="pill ${stock(p)<=0?'out':stock(p)<=num(p.alert)?'low':''}">${stock(p)<=0?'Rupture':stock(p)<=num(p.alert)?'Stock faible':'Disponible'}</span></td>${seller?'':`<td><button class="btn secondary small" onclick="editProduct('${p.id}')">Modifier</button> <button class="btn danger small" onclick="deleteProduct('${p.id}')">Supprimer</button></td>`}</tr>`).join('')}</tbody></table>`:tableEmpty('Aucun article trouvé.');
+}
+function editProduct(pid){let p=db.products.find(x=>x.id===pid);if(!p)return;let n=prompt('Nom de l’article',p.name);if(n===null)return;if(!n.trim())return toast('Le nom est obligatoire');let cost=prompt('Prix d’achat unitaire (FC)',p.cost);if(cost===null)return;let price=prompt('Prix de vente unitaire (FC)',p.price);if(price===null)return;let alert=prompt('Seuil d’alerte',p.alert);if(alert===null)return;p.name=n.trim();p.cost=num(cost);p.price=num(price);p.alert=num(alert);save();toast('Article modifié.')}
+function deleteProduct(pid){if(!confirm('Supprimer cet article du répertoire ? Les opérations passées seront conservées.'))return;db.products=db.products.filter(p=>p.id!==pid);save();toast('Article supprimé du répertoire.')}
+function fillSelects(){for(const sid of ['saleProduct','moveProduct']){let s=document.getElementById(sid),old=s.value;s.innerHTML='<option value="">Choisir un article…</option>'+db.products.map(p=>`<option value="${p.id}">${esc(p.name)} — stock : ${stock(p)}</option>`).join('');if([...s.options].some(o=>o.value===old))s.value=old}updateSalePreview()}
+function updateSalePreview(){let p=db.products.find(p=>p.id===document.getElementById('saleProduct').value);if(p&&!document.getElementById('salePrice').dataset.manual)document.getElementById('salePrice').value=p.price;document.getElementById('salePreview').textContent=money(num(document.getElementById('saleQty').value)*num(document.getElementById('salePrice').value))}
+function renderMovements(){let a=[...db.movements].sort((x,y)=>(y.date||'').localeCompare(x.date||''));document.getElementById('movementTable').innerHTML=a.length?`<table><thead><tr><th>Date</th><th>Type</th><th>Article</th><th>Quantité</th><th>Motif</th></tr></thead><tbody>${a.map(m=>`<tr><td>${esc(m.date)}</td><td>${m.type==='in'?'Entrée':'Sortie'}</td><td>${esc(m.name)}</td><td>${m.qty}</td><td>${esc(m.note||'—')}</td></tr>`).join('')}</tbody></table>`:tableEmpty('Aucun mouvement de stock.')}
+function renderExpenses(){let a=[...db.expenses].sort((x,y)=>(y.date||'').localeCompare(x.date||''));document.getElementById('expenseTable').innerHTML=a.length?`<table><thead><tr><th>Date</th><th>Dépense</th><th>Note</th><th class="num">Montant</th><th class="no-print">Action</th></tr></thead><tbody>${a.map(e=>`<tr><td>${esc(e.date)}</td><td>${esc(e.name)}</td><td>${esc(e.note||'—')}</td><td class="num">${money(e.amount)}</td><td><button class="btn danger small no-print" onclick="deleteExpense('${e.id}')">Supprimer</button></td></tr>`).join('')}</tbody></table>`:tableEmpty('Aucune dépense enregistrée.')}
+function deleteExpense(eid){if(!confirm('Supprimer cette dépense ?'))return;db.expenses=db.expenses.filter(e=>e.id!==eid);save();toast('Dépense supprimée.')}
+function renderHistory(){
+ let a=document.getElementById('fromDate').value,b=document.getElementById('toDate').value,ops=allOps().filter(x=>inRange(x.date,a,b)),ss=ops.filter(x=>x.kind==='Vente'),es=ops.filter(x=>x.kind==='Dépense');
+ const seller=document.getElementById('role').value==='seller';
+ document.getElementById('reportSummary').innerHTML=`<div class="card"><div class="metric-label">Ventes</div><div class="metric green">${money(sum(ss,x=>x.price*x.qty))}</div></div><div class="card"><div class="metric-label">Dépenses</div><div class="metric">${money(sum(es,x=>x.amount))}</div></div>${seller?'':`<div class="card"><div class="metric-label">Bénéfice net estimé</div><div class="metric green">${money(profitSales(ss)-sum(es,x=>x.amount))}</div></div>`}<div class="card"><div class="metric-label">Opérations</div><div class="metric">${ops.length}</div></div>`;
+ document.getElementById('historyTable').innerHTML=ops.length?`<table><thead><tr><th>Date</th><th>Type</th><th>Libellé</th><th>Quantité</th><th class="num">Montant</th></tr></thead><tbody>${ops.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.kind)}</td><td>${esc(x.label)}</td><td>${x.qty??'—'}</td><td class="num">${money(x.amount)}</td></tr>`).join('')}</tbody></table>`:tableEmpty('Aucune opération pour cette période.');
+}
+function renderAll(){renderDashboard();renderProducts();fillSelects();renderMovements();renderExpenses();renderHistory();changeRoleVisibilityOnly()}
+function changeRoleVisibilityOnly(){const seller=document.getElementById('role').value==='seller';document.querySelectorAll('.admin-only').forEach(e=>e.style.display=seller?'none':'');}
+function nextArticleCode(){
+ const nums=db.products.map(p=>{const m=String(p.sku||'').match(/ART[-_ ]?(\d+)/i);return m?Number(m[1]):0});
+ let n=Math.max(0,...nums)+1,code;do{code='ART-'+String(n++).padStart(4,'0')}while(db.products.some(p=>String(p.sku||'').toUpperCase()===code));return code;
+}
+let pendingArticleImport=[];
+function normHeader(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+function cellNumber(v){if(typeof v==='number')return v;let x=String(v??'').trim().replace(/\s/g,'').replace(/FCFA?|CDF|USD|\$/ig,'').replace(',','.').replace(/[^0-9.\-]/g,'');return x?Number(x):0}
+function parseArticleRows(rows){
+ rows=(rows||[]).map(r=>Array.isArray(r)?r:Object.values(r)).filter(r=>r.some(v=>String(v??'').trim()!==''));
+ if(!rows.length)throw Error('Le fichier ne contient aucune ligne exploitable.');
+ const aliases={name:['article','nom','designation','produit','libelle','nomarticle','item','description'],sku:['numero','numeroarticle','reference','code','codearticle','sku','ref'],category:['categorie','famille','rayon','type'],qty:['quantite','quantiteinitiale','stock','stockinitial','qte','qty','nombre','quantiteenstock'],cost:['prixachat','prixunitaireachat','coutachat','coutunitaire','achat','prixrevient','prixdachat'],price:['prixvente','prixunitairevente','vente','prix','prixdevente'],alert:['seuilalerte','alerte','stockminimum','seuil']};
+ const first=rows[0].map(normHeader);let map={};for(const k in aliases){map[k]=first.findIndex(h=>aliases[k].includes(h))}
+ const hasHeader=map.name>=0;
+ if(!hasHeader){map={name:0,sku:-1,category:-1,qty:1,cost:2,price:3,alert:4};}
+ const data=hasHeader?rows.slice(1):rows;
+ return data.map(r=>({name:String(r[map.name]??'').trim(),sku:map.sku>=0?String(r[map.sku]??'').trim():'',category:map.category>=0?String(r[map.category]??'').trim():'',qty:map.qty>=0?cellNumber(r[map.qty]):0,cost:map.cost>=0?cellNumber(r[map.cost]):0,price:map.price>=0?cellNumber(r[map.price]):0,alert:map.alert>=0?cellNumber(r[map.alert]):5})).filter(x=>x.name);
+}
+async function previewArticleImport(){
+ const input=document.getElementById('articleFile'),out=document.getElementById('importPreview'),file=input.files[0];if(!file)return toast('Choisissez d’abord votre fiche.');
+ out.innerHTML='<p class="smalltext">Lecture du fichier en cours…</p>';
+ try{
+  let rows;const ext=file.name.split('.').pop().toLowerCase();
+  if(['xlsx','xls'].includes(ext)){if(!window.XLSX)throw Error('Le lecteur Excel n’est pas chargé. Connectez-vous à Internet puis réessayez.');const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});}
+  else if(ext==='csv'||ext==='txt'){const txt=await file.text();const lines=txt.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());const delim=(lines[0].match(/;/g)||[]).length>(lines[0].match(/,/g)||[]).length?';':(lines[0].match(/\t/g)||[]).length>(lines[0].match(/,/g)||[]).length?'\t':',';rows=lines.map(line=>{let result=[],cur='',quote=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'&&quote){cur+='"';i++}else if(c==='"')quote=!quote;else if(c===delim&&!quote){result.push(cur);cur=''}else cur+=c}result.push(cur);return result})}
+  else if(ext==='docx'){if(!window.mammoth)throw Error('Le lecteur Word n’est pas chargé. Connectez-vous à Internet puis réessayez.');const buf=await file.arrayBuffer();const result=await mammoth.extractRawText({arrayBuffer:buf});rows=result.value.split(/\r?\n/).map(line=>line.split(/\t+|\s{2,}/)).filter(r=>r.some(c=>c.trim()));if(rows.length<2)rows=result.value.split(/\r?\n/).filter(x=>x.trim()).map(line=>line.split(/\s*\|\s*|\s*;\s*/));}
+  else throw Error('Format non pris en charge. Choisissez .xlsx, .xls, .csv, .txt ou .docx.');
+  pendingArticleImport=parseArticleRows(rows);if(!pendingArticleImport.length)throw Error('Aucun article reconnu. Vérifiez les titres de colonnes et le contenu.');
+  const shown=pendingArticleImport.slice(0,8);out.innerHTML=`<div class="notice">${pendingArticleImport.length} article(s) détecté(s). Vérifiez l’aperçu avant l’importation.</div><div class="table-wrap"><table><thead><tr><th>Article</th><th>Quantité</th><th>Prix achat</th><th>Prix vente</th></tr></thead><tbody>${shown.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.qty}</td><td>${money(p.cost)}</td><td>${money(p.price)}</td></tr>`).join('')}</tbody></table></div>${pendingArticleImport.length>8?`<p class="smalltext">Aperçu des 8 premiers articles sur ${pendingArticleImport.length}.</p>`:''}<div class="actions"><button class="btn" type="button" onclick="confirmArticleImport()">Confirmer l’importation (${pendingArticleImport.length})</button><button class="btn secondary" type="button" onclick="cancelArticleImport()">Annuler</button></div>`;
+ }catch(e){pendingArticleImport=[];out.innerHTML=`<div class="notice">${esc(e.message||'Impossible de lire ce fichier.')}</div>`}
+}
+function confirmArticleImport(){
+ if(!pendingArticleImport.length)return toast('Veuillez d’abord lire un fichier.');if(!confirm('Importer '+pendingArticleImport.length+' article(s) dans le répertoire ?'))return;
+ const mode=document.getElementById('importMode').value;let added=0,updated=0,skipped=0;
+ for(const row of pendingArticleImport){let existing=db.products.find(p=>row.sku&&String(p.sku).toLowerCase()===row.sku.toLowerCase())||db.products.find(p=>p.name.toLowerCase()===row.name.toLowerCase());
+  if(existing){if(mode==='update'){existing.name=row.name;existing.category=row.category||existing.category;existing.qty=row.qty;existing.cost=row.cost;existing.price=row.price;existing.alert=row.alert; if(row.sku)existing.sku=row.sku;updated++}else skipped++;continue}
+  const sku=row.sku||nextArticleCode();db.products.push({id:id(),name:row.name,sku,category:row.category,qty:row.qty,cost:row.cost,price:row.price,alert:row.alert??5});added++;
+ }
+ pendingArticleImport=[];document.getElementById('importPreview').innerHTML='';document.getElementById('articleFile').value='';save();toast(`Import terminé : ${added} ajouté(s), ${updated} mis à jour, ${skipped} doublon(s) ignoré(s).`);
+}
+function cancelArticleImport(){pendingArticleImport=[];document.getElementById('importPreview').innerHTML='';toast('Importation annulée.')}
+function downloadTemplate(){const csv='Article;Quantité;Prix achat;Prix vente;Catégorie;Seuil alerte\r\nRiz 5 kg;10;12000;15000;Alimentaire;2\r\nSucre 1 kg;20;2500;3000;Alimentaire;5';download('modele-fiche-articles.csv','\ufeff'+csv,'text/csv;charset=utf-8');toast('Fiche modèle téléchargée. Ouvrez-la avec Excel.');}
+function exportCSV(kind){let rows,filename;if(kind==='products'){rows=[['Article','Référence','Catégorie','Stock disponible','Prix achat FC','Prix vente FC'],...db.products.map(p=>[p.name,p.sku,p.category,stock(p),p.cost,p.price])];filename='articles-stock.csv'}else if(kind==='expenses'){rows=[['Date','Dépense','Montant FC','Note'],...db.expenses.map(e=>[e.date,e.name,e.amount,e.note])];filename='depenses.csv'}else{rows=[['Date','Type','Article','Quantité','Prix unitaire vente','Montant'],...db.sales.map(s=>[s.date,'Vente',s.name,s.qty,s.price,s.qty*s.price])];filename='ventes.csv'}let csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');download(filename,'\ufeff'+csv,'text/csv;charset=utf-8');}
+function exportAll(){download('quin-winner-sauvegarde-'+today()+'.json',JSON.stringify(db,null,2),'application/json');toast('Sauvegarde téléchargée.')}
+function download(name,content,type){let blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function restoreAll(){let f=document.getElementById('restoreFile').files[0];if(!f)return toast('Choisissez un fichier JSON.');if(!confirm('La sauvegarde remplacera les données actuelles sur cet appareil. Continuer ?'))return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.products||!x.sales||!x.movements||!x.expenses)throw Error();db=x;save();toast('Sauvegarde restaurée.')}catch(e){toast('Fichier invalide ou incompatible.')}};r.readAsText(f)}
+function resetDemo(){if(!confirm('ATTENTION : supprimer toutes les données de cette application sur cet appareil ?'))return;db=blank();save();toast('Toutes les données ont été effacées.')}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===b.dataset.page));}));
+document.getElementById('productForm').addEventListener('submit',e=>{e.preventDefault();let f=new FormData(e.target),name=String(f.get('name')).trim();if(db.products.some(p=>p.name.toLowerCase()===name.toLowerCase()))return toast('Un article porte déjà ce nom.');db.products.push({id:id(),name,sku:String(f.get('sku')).trim()||nextArticleCode(),category:String(f.get('category')).trim(),qty:num(f.get('qty')),cost:num(f.get('cost')),price:num(f.get('price')),alert:num(f.get('alert'))});e.target.reset();e.target.elements.qty.value=0;e.target.elements.cost.value=0;e.target.elements.price.value=0;e.target.elements.alert.value=5;save();toast('Article enregistré.');});
+document.getElementById('saleProduct').addEventListener('change',()=>{document.getElementById('salePrice').dataset.manual='';updateSalePreview()});document.getElementById('saleQty').addEventListener('input',updateSalePreview);document.getElementById('salePrice').addEventListener('input',e=>{e.target.dataset.manual='1';updateSalePreview()});
+document.getElementById('saleForm').addEventListener('submit',e=>{e.preventDefault();let p=db.products.find(p=>p.id===document.getElementById('saleProduct').value),qty=num(document.getElementById('saleQty').value),price=num(document.getElementById('salePrice').value);if(!p)return toast('Choisissez un article.');if(qty<=0)return toast('La quantité doit être supérieure à zéro.');if(stock(p)<qty)return toast('Stock insuffisant : '+stock(p)+' unité(s) disponible(s).');db.sales.push({id:id(),pid:p.id,name:p.name,qty,price,cost:p.cost,date:document.getElementById('saleDate').value||today(),client:document.getElementById('saleClient').value.trim(),created:Date.now()});e.target.reset();document.getElementById('saleDate').value=today();document.getElementById('saleQty').value=1;document.getElementById('salePrice').dataset.manual='';save();toast('Vente enregistrée.');});
+document.getElementById('moveType').addEventListener('change',()=>{document.getElementById('moveCostLabel').textContent=document.getElementById('moveType').value==='in'?'Prix d’achat unitaire (FC)':'Coût estimé (FC, facultatif)'});
+document.getElementById('moveForm').addEventListener('submit',e=>{e.preventDefault();let p=db.products.find(p=>p.id===document.getElementById('moveProduct').value),type=document.getElementById('moveType').value,qty=num(document.getElementById('moveQty').value);if(!p)return toast('Choisissez un article.');if(qty<=0)return toast('La quantité doit être positive.');if(type==='out'&&stock(p)<qty)return toast('Stock insuffisant.');let cost=num(document.getElementById('moveCost').value);if(type==='in'&&cost>0)p.cost=cost;db.movements.push({id:id(),pid:p.id,name:p.name,type,qty,cost,note:document.getElementById('moveNote').value.trim(),date:document.getElementById('moveDate').value||today(),created:Date.now()});e.target.reset();document.getElementById('moveDate').value=today();document.getElementById('moveQty').value=1;save();toast('Mouvement enregistré.');});
+document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();db.expenses.push({id:id(),name:document.getElementById('expenseName').value.trim(),amount:num(document.getElementById('expenseAmount').value),date:document.getElementById('expenseDate').value||today(),note:document.getElementById('expenseNote').value.trim(),created:Date.now()});e.target.reset();document.getElementById('expenseDate').value=today();save();toast('Dépense enregistrée.');});
+document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
+renderAll();changeRole();
+</script>
+</body>
+</html>
