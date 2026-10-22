@@ -56,12 +56,19 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
  <div class="head"><div><div class="brand">📦 QUIN WINNER</div><div class="sub">Gestion de stock • Ventes • Dépenses</div></div>
  <div style="display:flex;align-items:center;gap:10px"><span id="activeRole" style="color:#fff;font-weight:700">Responsable</span><button type="button" class="btn secondary small no-print" onclick="logout()">Verrouiller</button><select id="role" aria-label="Mode d’accès" onchange="changeRole()" style="display:none"><option value="admin">Responsable</option><option value="seller">Vendeuse</option></select></div></div>
  <nav id="nav">
-  <button class="active" data-page="dashboard">Tableau de bord</button><button data-page="products">Articles / stock</button><button data-page="sale">Nouvelle vente</button><button class="admin-only" data-page="movement">Entrées / sorties</button><button class="admin-only" data-page="expense">Dépenses</button><button data-page="history">Historique / rapports</button>
+  <button class="active" data-page="dashboard">Tableau de bord</button><button data-page="products">Articles / stock</button> <button data-page="sales">Nouvelle vente</button><button data-page="expenses">Dépenses</button>
+<button data-page="sale">Nouvelle vente</button><button class="admin-only" data-page="movement">Entrées / sorties</button><button class="admin-only" data-page="expense">Dépenses</button><button data-page="history">Historique / rapports</button>
  </nav>
 </header>
 <main>
 <section id="dashboard" class="page active">
  <h1>Tableau de bord</h1><p class="hint" id="todayLabel"></p>
+       <!-- Case de saisie manuelle du taux -->
+      <div style="background: #115e59; color: white; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: inline-block;">
+          <label for="tauxManuel" style="font-weight: bold; margin-right: 10px;">Taux du jour (1 USD = ? FC) :</label>
+          <input type="number" id="tauxManuel" value="2800" style="padding: 6px; border-radius: 4px; border: none; color: black; font-weight: bold; width: 100px;">
+          <span style="font-weight: bold; margin-left: 5px;">FC</span>
+      </div>
  <div class="cards">
   <div class="card"><div class="metric-label">Ventes du jour</div><div class="metric green" id="mSales">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Coût des articles vendus</div><div class="metric" id="mCost">0 FC</div></div>
@@ -251,18 +258,66 @@ renderAll();changeRole();
   // https://firebase.google.com/docs/web/setup#available-libraries
 
   // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBQuGf9ZD66NpNoQvxT7NH8YCQStw3X1bQ",
-    authDomain: "quin-winner.firebaseapp.com",
-    databaseURL: "https://quin-winner-default-rtdb.firebaseio.com",
+  // Votre configuration Firebase (Ne pas toucher)
+const firebaseConfig = {
+    apiKey: "AIzaSyBQuGf9ZD66NpNoQvxl7NHiYCQStw3X1bQ",
+    authDomain: "://firebaseapp.com",
+    databaseURL: "https://firebaseio.com",
     projectId: "quin-winner",
     storageBucket: "quin-winner.firebasestorage.app",
-    messagingSenderId: "36142393238",
-    appId: "1:36142393238:web:e24692bf0fbb776e3d5fb7"
-  };
+    messagingSenderId: "3614239238",
+    appId: "1:3614239238:web:e24692bf0fbb776e3d5fb7"
+};
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+// 1. Initialisation de Firebase en premier
+const app = initializeApp(firebaseConfig);
+
+// 2. Logique de conversion automatique en Dollars
+function actualiserConversionsEnDollars() {
+    const inputTaux = document.getElementById('tauxManuel');
+    const taux = parseFloat(inputTaux ? inputTaux.value : 2800) || 2800;
+    
+    const listekpi = [
+        { fc: 'mSales', usd: 'mSalesUSD' },
+        { fc: 'mCost', usd: 'mCostUSD' },
+        { fc: 'mExpense', usd: 'mExpenseUSD' },
+        { fc: 'mProfit', usd: 'mProfitUSD' },
+        { fc: 'mMonth', usd: 'mMonthUSD' },
+        { fc: 'mValue', usd: 'mValueUSD' }
+    ];
+    
+    listekpi.forEach(kpi => {
+        const elFC = document.getElementById(kpi.fc);
+        const elUSD = document.getElementById(kpi.usd);
+        
+        if (elFC && elUSD) {
+            const texteFC = elFC.innerText.replace(/[^0-9.-]/g, '');
+            const montantFC = parseFloat(texteFC) || 0;
+            const montantUSD = (montantFC / taux).toFixed(2);
+            elUSD.innerText = montantUSD + " $";
+        }
+    });
+}
+
+// 3. Activation des détecteurs de changement
+setTimeout(() => {
+    const inputTaux = document.getElementById('tauxManuel');
+    if (inputTaux) {
+        inputTaux.addEventListener('input', actualiserConversionsEnDollars);
+    }
+    
+    const targetIds = ['mSales', 'mCost', 'mExpense', 'mProfit', 'mMonth', 'mValue'];
+    const observer = new MutationObserver(actualiserConversionsEnDollars);
+    
+    targetIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
+    });
+
+    actualiserConversionsEnDollars();
+}, 1500);
+
 </script>
 </body>
 </html>
+
