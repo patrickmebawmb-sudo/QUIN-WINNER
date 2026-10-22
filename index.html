@@ -121,7 +121,8 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 </section>
 <section id="expense" class="page">
  <h1>Dépenses</h1><p class="hint">Saisissez les dépenses de fonctionnement : transport, loyer, électricité, etc.</p>
- <div class="panel admin-only"><h2>Ajouter une dépense</h2><form id="expenseForm"><div class="fields">
+ <div class="panel 
+  "><h2>Ajouter une dépense</h2><form id="expenseForm"><div class="fields">
  <div><label>Nature de la dépense *</label><input id="expenseName" required placeholder="Ex. Transport"></div><div><label>Montant (FC) *</label><input id="expenseAmount" type="number" min="0.01" step="any" required></div><div><label>Date *</label><input id="expenseDate" type="date" required></div><div><label>Note (facultatif)</label><input id="expenseNote" placeholder="Précision"></div>
  </div><div class="actions"><button class="btn" type="submit">Enregistrer la dépense</button></div></form></div>
  <div class="panel"><div class="toolbar"><h2 style="margin:0">Liste des dépenses</h2><button class="btn secondary right no-print" onclick="exportCSV('expenses')">Exporter CSV</button></div><div id="expenseTable" class="table-wrap"></div></div>
