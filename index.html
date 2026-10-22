@@ -243,28 +243,71 @@ document.getElementById('moveForm').addEventListener('submit',e=>{e.preventDefau
 document.getElementById('expenseForm').addEventListener('submit',e=>{e.preventDefault();db.expenses.push({id:id(),name:document.getElementById('expenseName').value.trim(),amount:num(document.getElementById('expenseAmount').value),date:document.getElementById('expenseDate').value||today(),note:document.getElementById('expenseNote').value.trim(),created:Date.now()});e.target.reset();document.getElementById('expenseDate').value=today();save();toast('Dépense enregistrée.');});
 document.getElementById('saleDate').value=today();document.getElementById('moveDate').value=today();document.getElementById('expenseDate').value=today();document.getElementById('fromDate').value=today().slice(0,7)+'-01';document.getElementById('toDate').value=today();
 renderAll();changeRole();
-// --- AFFICHAGE COMPLET FORMULAIRE DÉPENSES POUR LA VENDEUSE ---
+// =========================================================================
+// SÉCURITÉ ET ACCÈS TOTAL AUX DÉPENSES POUR LA VENDEUSE + CONVERSION DOLLARS
+// =========================================================================
 setInterval(() => {
-    // 1. Affiche l'onglet dans le menu
-    const btnDepenses = document.querySelector('[data-page="expenses"]');
+    // 1. Force l'affichage de l'onglet "Dépenses" dans le menu pour la vendeuse
+    const btnDepenses = document.querySelector('[data-page="expenses"]') || 
+                        Array.from(document.querySelectorAll('nav button')).find(b => b.textContent.includes('Dépenses'));
     if (btnDepenses) {
         btnDepenses.classList.remove('admin-only');
         btnDepenses.style.setProperty('display', 'inline-block', 'important');
     }
 
-    // 2. Affiche la page des dépenses
+    // 2. Force l'affichage de la page de contenu des Dépenses
     const pageDepenses = document.getElementById('expenses');
     if (pageDepenses) {
         pageDepenses.classList.remove('admin-only');
         
-        // 3. Force la visibilité du formulaire d'ajout à l'intérieur de la page
-        const formulaire = pageDepenses.querySelector('.admin-only') || pageDepenses.querySelector('.card');
-        if (formulaire) {
-            formulaire.classList.remove('admin-only');
-            formulaire.style.setProperty('display', 'block', 'important');
+        // 3. Force l'affichage du bloc "Ajouter une dépense" (le formulaire blanc)
+        const formulaireBlanche = pageDepenses.querySelector('.admin-only') || pageDepenses.querySelector('.card');
+        if (formulaireBlanche) {
+            formulaireBlanche.classList.remove('admin-only');
+            formulaireBlanche.style.setProperty('display', 'block', 'important');
         }
     }
 }, 1000);
+
+// --- FONCTION DE CONVERSION AUTOMATIQUE FC VERS DOLLARS ---
+function executerCalculMonnaie() {
+    const inputTaux = document.getElementById('tauxManuel');
+    const taux = parseFloat(inputTaux ? inputTaux.value : 2800) || 2800;
+    
+    const kpis = [
+        { fc: 'mSales', usd: 'mSalesUSD' },
+        { fc: 'mCost', usd: 'mCostUSD' },
+        { fc: 'mExpense', usd: 'mExpenseUSD' },
+        { fc: 'mProfit', usd: 'mProfitUSD' },
+        { fc: 'mMonth', usd: 'mMonthUSD' },
+        { fc: 'mValue', usd: 'mValueUSD' }
+    ];
+    
+    kpis.forEach(item => {
+        const elFC = document.getElementById(item.fc);
+        const elUSD = document.getElementById(item.usd);
+        if (elFC && elUSD) {
+            const montantFC = parseFloat(elFC.innerText.replace(/[^0-9.-]/g, '')) || 0;
+            elUSD.innerText = (montantFC / taux).toFixed(2) + " $";
+        }
+    });
+}
+
+// Activer les écouteurs de changements pour la monnaie
+setTimeout(() => {
+    const inputTaux = document.getElementById('tauxManuel');
+    if (inputTaux) inputTaux.addEventListener('input', executerCalculMonnaie);
+    
+    ['mSales', 'mCost', 'mExpense', 'mProfit', 'mMonth', 'mValue'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const obs = new MutationObserver(executerCalculMonnaie);
+            obs.observe(el, { childList: true, characterData: true, subtree: true });
+        }
+    });
+    executerCalculMonnaie();
+}, 1500);
+
 
 
 
