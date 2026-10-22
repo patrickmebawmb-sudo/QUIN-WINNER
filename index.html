@@ -63,14 +63,45 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <section id="dashboard" class="page active">
  <h1>Tableau de bord</h1><p class="hint" id="todayLabel"></p>
  <div class="cards">
-        <!-- Case pour introduire votre taux manuel -->
-      <div style="background: #115e59; color: white; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: inline-block;">
-          <label for="tauxManuel" style="font-weight: bold; margin-right: 10px;">Taux du jour (1 USD = ? FC) :</label>
-          <input type="number" id="tauxManuel" value="2800" style="padding: 6px; border-radius: 4px; border: none; color: black; font-weight: bold; width: 100px;">
-          <span style="font-weight: bold; margin-left: 5px;">FC</span>
-      </div>
+               <div class="card">
+          <div class="metric-label">Ventes du jour</div>
+          <div class="metric green" id="mSales">0 FC</div>
+          <div id="mSalesUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
+        <div class="card admin-only">
+          <div class="metric-label">Coût des articles vendus</div>
+          <div class="metric" id="mCost">0 FC</div>
+          <div id="mCostUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
+        <div class="card">
+          <div class="metric-label">Dépenses du jour</div>
+          <div class="metric" id="mExpense">0 FC</div>
+          <div id="mExpenseUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
+        <div class="card admin-only">
+          <div class="metric-label">Bénéfice net du jour*</div>
+          <div class="metric green" id="mProfit">0 FC</div>
+          <div id="mProfitUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
+        <div class="card admin-only">
+          <div class="metric-label">Bénéfice net du mois*</div>
+          <div class="metric green" id="mMonth">0 FC</div>
+          <div id="mMonthUSD" style="color: #22c55e; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
+        <div class="card">
+          <div class="metric-label">Articles référencés</div>
+          <div class="metric" id="mProducts">0</div>
+        </div>
+        <div class="card">
+          <div class="metric-label">Unités en stock</div>
+          <div class="metric" id="mUnits">0</div>
+        </div>
+        <div class="card admin-only">
+          <div class="metric-label">Valeur du stock au prix d'achat</div>
+          <div class="metric" id="mValue">0 FC</div>
+          <div id="mValueUSD" style="color: #6b7280; font-weight: bold; font-size: 14px; margin-top: 4px;">0.00 $</div>
+        </div>
 
-  <div class="card"><div class="metric-label">Ventes du jour</div><div class="metric green" id="mSales">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Coût des articles vendus</div><div class="metric" id="mCost">0 FC</div></div>
   <div class="card"><div class="metric-label">Dépenses du jour</div><div class="metric" id="mExpense">0 FC</div></div>
   <div class="card admin-only"><div class="metric-label">Bénéfice net du jour*</div><div class="metric green" id="mProfit">0 FC</div></div>
